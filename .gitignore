@@ -1,4 +1,35 @@
+# System & IDE
 .DS_Store
+.vscode/
+.idea/
+
+# Python Virtualenv & Bytecode
 venv/
-*.wav
 __pycache__/
+*.pyc
+*.pyo
+
+# PyInstaller & Build Artifacts (Never push binaries)
+build/
+dist/
+*.spec
+*.pkg
+*.pyz
+*.toc
+*.zip
+
+# Audio Files & Telemetry Logs (Private)
+logs/
+voiceprints/
+transcripts/
+recordings/
+*.log
+app.log
+*.wav
+*.flac
+*.npy
+*.jsonl
+
+# Backups & Temp files
+*.backup*
+.ai_agent_backups/
