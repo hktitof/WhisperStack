@@ -1,12 +1,12 @@
 """
-enroll_voice.py — One-time voice calibration for Abdel in WhisperStack.
+enroll_voice.py — One-time voice calibration for WhisperStack.
 
-Records a 6-second sample of Abdel speaking cleanly, extracts the
+Records a 6-second sample of the target speaker, extracts the
 192-dimensional ECAPA-TDNN speaker embedding, and saves it to
-voiceprints/abdel_voiceprint.npy.
+voiceprints/target_voiceprint.npy.
 
 Usage:
-    /Users/Work/Projects/Whisper-local/venv/bin/python enroll_voice.py
+    python enroll_voice.py
 """
 
 import json
@@ -20,15 +20,14 @@ from pathlib import Path
 
 from voice_filter import VoiceFilter, DEFAULT_PROFILE_PATH, SAMPLE_RATE
 
-SETTINGS_FILE = Path("/Users/Work/Projects/Whisper-local/settings.json")
-ENROLLMENT_WAV = Path(
-    "/Users/Work/Projects/Whisper-local/voiceprints/abdel_enrollment.wav"
-)
+PROJECT_ROOT = Path(__file__).resolve().parent
+SETTINGS_FILE = PROJECT_ROOT / "settings.json"
+ENROLLMENT_WAV = PROJECT_ROOT / "voiceprints" / "target_enrollment.wav"
 DURATION_SECONDS = 6.0
 
 
 def get_configured_mic_index() -> int | None:
-    """Reads settings.json to match Abdel's chosen microphone device index."""
+    """Reads settings.json to match the configured microphone device index."""
     if not SETTINGS_FILE.exists():
         return None
     try:
@@ -63,7 +62,7 @@ def main():
     print("\n👉 Instructions:")
     print("   Please speak naturally into your microphone for 6 seconds.")
     print("   You can say something like:")
-    print("   'Hey, this is Abdel, calibrating my voice for WhisperStack.'\n")
+    print("   'This is my voice calibration test for WhisperStack.'\n")
 
     if "--auto" in sys.argv:
         print("⏳ Auto-start enabled. Recording will start in 3 seconds...")

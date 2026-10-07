@@ -1,57 +1,18 @@
 {
-	"mic_name": "BKD-11 Pro Audio Device",
+	"mic_name": "System Default",
 	"width": 291,
 	"height": 73,
-	"pos_x": 5406,
-	"pos_y": 1808,
+	"pos_x": 100,
+	"pos_y": 100,
 	"hotkey": "<cmd>+<shift>+s",
 	"model_name": "mlx-community/whisper-large-v3-turbo",
 	"final_mode": "smart",
 	"save_audio_recordings": true,
 	"audio_format": "flac",
+	"voice_filter_enabled": true,
+	"enable_location_header": false,
 	"margin_right": 0,
 	"margin_bottom": 0,
-	"screen_positions": {
-		"MD270K": {
-			"x": 4323,
-			"y": 1081,
-			"margin_right": 0,
-			"margin_bottom": 0
-		},
-		"E2721F": {
-			"x": 2399,
-			"y": 1338,
-			"margin_right": 0,
-			"margin_bottom": 5
-		},
-		"DELL S2421HSX": {
-			"x": 5410,
-			"y": 1915,
-			"margin_right": 0,
-			"margin_bottom": 0
-		}
-	},
-	"monitors": {
-		"E2721F": {
-			"circle_cx": 2517,
-			"circle_cy": 1418,
-			"circle_size": 26.0,
-			"margin_right": 42,
-			"margin_bottom": 21
-		},
-		"MD270K": {
-			"circle_cx": 4442,
-			"circle_cy": 1148,
-			"circle_size": 26.4,
-			"margin_right": 37,
-			"margin_bottom": 27
-		},
-		"DELL S2421HSX": {
-			"circle_cx": 5516,
-			"circle_cy": 1923,
-			"circle_size": 40.3,
-			"margin_right": 43,
-			"margin_bottom": 87
-		}
-	}
+	"screen_positions": {},
+	"monitors": {}
 }

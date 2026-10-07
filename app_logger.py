@@ -23,7 +23,7 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-BASE_DIR = Path("/Users/Work/Projects/Whisper-local")
+BASE_DIR = Path(__file__).resolve().parent
 LOGS_DIR = BASE_DIR / "logs"
 TRANSCRIPTS_DIR = LOGS_DIR / "transcripts"
 APP_LOG_FILE = LOGS_DIR / "whisperstack.log"

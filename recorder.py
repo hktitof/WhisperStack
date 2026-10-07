@@ -11,7 +11,6 @@ import subprocess
 import tempfile
 import threading
 import time
-import urllib.request
 import warnings
 from collections.abc import Callable
 from datetime import datetime
@@ -83,9 +82,8 @@ SILENT_HALLUCINATIONS = {
     "bye.",
 }
 
-_cached_location = "United Kingdom"
-_cached_gps = "N/A"
-_cached_altitude = "N/A"
+PROJECT_ROOT = Path(__file__).resolve().parent
+SETTINGS_FILE = PROJECT_ROOT / "settings.json"
 
 
 def _get_system_timezone() -> str:
@@ -108,71 +106,6 @@ def _get_system_timezone() -> str:
     if tz_abbrev:
         return tz_abbrev
     return "UTC"
-
-
-def _update_cached_location():
-    global _cached_location, _cached_gps, _cached_altitude
-    lat, lon, city, country = None, None, "United Kingdom", ""
-    urls_and_parsers = [
-        (
-            "http://ip-api.com/json",
-            lambda d: (
-                d.get("lat"),
-                d.get("lon"),
-                d.get("city"),
-                d.get("country"),
-            ),
-        ),
-        (
-            "https://ipinfo.io/json",
-            lambda d: (
-                float(d.get("loc", "").split(",")[0])
-                if "," in d.get("loc", "")
-                else None,
-                float(d.get("loc", "").split(",")[1])
-                if "," in d.get("loc", "")
-                else None,
-                d.get("city"),
-                d.get("country"),
-            ),
-        ),
-    ]
-    for url, parser in urls_and_parsers:
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                data = json.loads(resp.read().decode())
-                _lat, _lon, _city, _country = parser(data)
-                if _lat is not None and _lon is not None:
-                    lat, lon = _lat, _lon
-                    city = _city or city
-                    country = _country or country
-                    break
-        except Exception:
-            continue
-
-    if city and country:
-        _cached_location = f"{city}, {country}"
-    elif city or country:
-        _cached_location = city or country
-
-    if lat is not None and lon is not None:
-        lat_dir = "N" if lat >= 0 else "S"
-        lon_dir = "E" if lon >= 0 else "W"
-        _cached_gps = f"{abs(lat):.4f}° {lat_dir}, {abs(lon):.4f}° {lon_dir}"
-
-        try:
-            elev_url = f"https://api.open-meteo.com/v1/elevation?latitude={lat}&longitude={lon}"
-            req = urllib.request.Request(
-                elev_url, headers={"User-Agent": "Mozilla/5.0"}
-            )
-            with urllib.request.urlopen(req, timeout=3) as resp:
-                elev_data = json.loads(resp.read().decode())
-                elevation = elev_data.get("elevation", [None])[0]
-                if elevation is not None:
-                    _cached_altitude = f"{elevation:.0f}m"
-        except Exception:
-            pass
 
 
 def _detect_screen_for_x(target_x: float) -> str:
@@ -357,11 +290,7 @@ class Recorder:
         # <<< VOICE-FILTER-ISOLATION
 
         # Fetch location in background daemon thread on startup
-        threading.Thread(
-            target=_update_cached_location,
-            daemon=True,
-            name="LocationResolver",
-        ).start()
+        # (External lookups removed for 100% offline privacy)
 
     def set_device(self, device_index: int | None, device_name: str | None = None):
         if self.is_recording:
@@ -624,9 +553,8 @@ class Recorder:
         import json
 
         try:
-            settings_file = "/Users/Work/Projects/Whisper-local/settings.json"
-            if os.path.exists(settings_file):
-                with open(settings_file, "r", encoding="utf-8") as f:
+            if SETTINGS_FILE.exists():
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     settings = json.load(f)
                 return settings.get("model_name", "mlx-community/whisper-base-mlx")
         except Exception:
@@ -675,9 +603,8 @@ class Recorder:
         import json
 
         try:
-            settings_file = "/Users/Work/Projects/Whisper-local/settings.json"
-            if os.path.exists(settings_file):
-                with open(settings_file, "r", encoding="utf-8") as f:
+            if SETTINGS_FILE.exists():
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     mode = str(json.load(f).get("final_mode", "smart"))
                     return mode if mode in ("smart", "full", "fast") else "smart"
         except Exception:
@@ -690,9 +617,8 @@ class Recorder:
     def _load_voice_filter_setting(self) -> bool:
         """Reads voice_filter_enabled from settings.json (defaults to True)."""
         try:
-            settings_file = "/Users/Work/Projects/Whisper-local/settings.json"
-            if os.path.exists(settings_file):
-                with open(settings_file, "r", encoding="utf-8") as f:
+            if SETTINGS_FILE.exists():
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     return bool(data.get("voice_filter_enabled", True))
         except Exception:
@@ -702,9 +628,8 @@ class Recorder:
     def _load_audio_recording_settings(self) -> tuple[bool, str]:
         """Reads save_audio_recordings and audio_format from settings.json."""
         try:
-            settings_file = "/Users/Work/Projects/Whisper-local/settings.json"
-            if os.path.exists(settings_file):
-                with open(settings_file, "r", encoding="utf-8") as f:
+            if SETTINGS_FILE.exists():
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     save = bool(data.get("save_audio_recordings", True))
                     fmt = str(data.get("audio_format", "flac")).lower()
@@ -1117,23 +1042,15 @@ class Recorder:
                                         f"{mins}m {secs:.2f}s ({duration_seconds:.2f}s)"
                                     )
 
-                                location_str = _cached_location
-                                gps_str = _cached_gps
-                                altitude_str = _cached_altitude
                                 timezone_str = _get_system_timezone()
-
-                                geo_parts = [f"Location: {location_str}"]
-                                if gps_str and gps_str != "N/A":
-                                    geo_parts.append(f"GPS: {gps_str}")
-                                if altitude_str and altitude_str != "N/A":
-                                    geo_parts.append(f"Altitude: {altitude_str}")
-                                geo_parts.append(f"Timezone: {timezone_str}")
-
-                                geo_prefix = " | ".join(geo_parts)
-
+                                tz_part = (
+                                    f"Timezone: {timezone_str} | "
+                                    if timezone_str
+                                    else ""
+                                )
                                 header = (
                                     f"[TRANSCRIPTION RECORDING]\n"
-                                    f"{geo_prefix} | {time_segment} | Duration: {dur_str}\n\n"
+                                    f"{tz_part}{time_segment} | Duration: {dur_str}\n\n"
                                 )
                                 final_text = header + spoken_text
                             else:
@@ -1287,8 +1204,7 @@ class Recorder:
                         date_folder = now_dt.strftime("%Y-%m-%d")
                         time_tag = now_dt.strftime("%H%M%S")
                         recordings_dir = (
-                            Path("/Users/Work/Projects/Whisper-local/logs/recordings")
-                            / date_folder
+                            PROJECT_ROOT / "logs" / "recordings" / date_folder
                         )
                         recordings_dir.mkdir(parents=True, exist_ok=True)
                         ext = (

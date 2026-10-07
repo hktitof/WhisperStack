@@ -4,9 +4,8 @@ voice_filter.py — Target Speaker Verification and Acoustic Gating for WhisperS
 This module provides real-time speaker verification using SpeechBrain's ECAPA-TDNN
 model (192-dimensional x-vector embeddings). It filters out foreign voices
 (e.g., podcasts, YouTube videos, phone audio, other speakers in the room)
-so that WhisperStack ONLY transcribes when the enrolled target speaker (Abdel) is talking.
+so that WhisperStack ONLY transcribes when the enrolled target speaker is talking.
 
-Author: Pragmatic Partner & Abdel
 Architecture: SpeechBrain ECAPA-TDNN + Cosine Similarity Gating
 """
 
@@ -21,11 +20,10 @@ from pathlib import Path
 from typing import Tuple, Optional
 
 # Default paths and parameters
-DEFAULT_CACHE_DIR = Path("/Users/Work/.cache/speechbrain/spkrec-ecapa-voxceleb")
-DEFAULT_PROFILE_PATH = Path(
-    "/Users/Work/Projects/Whisper-local/voiceprints/abdel_voiceprint.npy"
-)
-DEFAULT_THRESHOLD = 0.30  # Calibrated threshold: Abdel (even over loud speakers) is >=0.35, foreign audio alone is <=0.24
+PROJECT_ROOT = Path(__file__).resolve().parent
+DEFAULT_CACHE_DIR = Path.home() / ".cache" / "speechbrain" / "spkrec-ecapa-voxceleb"
+DEFAULT_PROFILE_PATH = PROJECT_ROOT / "voiceprints" / "target_voiceprint.npy"
+DEFAULT_THRESHOLD = 0.30  # Cosine similarity threshold for target speaker acceptance
 SAMPLE_RATE = 16_000
 
 
@@ -88,13 +86,20 @@ class VoiceFilter:
 
     def load_profile(self) -> bool:
         """Loads the enrolled target speaker embedding from disk."""
-        if not self.profile_path.exists():
-            print(f"ℹ️ [VoiceFilter] No voice profile found at: {self.profile_path}")
+        target_path = self.profile_path
+        if not target_path.exists():
+            vp_dir = self.profile_path.parent
+            if vp_dir.exists():
+                npy_files = list(vp_dir.glob("*.npy"))
+                if npy_files:
+                    target_path = npy_files[0]
+
+        if not target_path.exists():
             self.enrolled_embedding = None
             return False
 
         try:
-            emb = np.load(self.profile_path)
+            emb = np.load(target_path)
             # Ensure it is a 1D float32 normalized vector
             emb = emb.flatten().astype(np.float32)
             norm = np.linalg.norm(emb)
@@ -102,7 +107,7 @@ class VoiceFilter:
                 emb = emb / norm
             self.enrolled_embedding = emb
             print(
-                f"✅ [VoiceFilter] Loaded target voiceprint: {self.profile_path} (dim={len(emb)})"
+                f"✅ [VoiceFilter] Loaded target voiceprint: {target_path.name} (dim={len(emb)})"
             )
             return True
         except Exception as exc:

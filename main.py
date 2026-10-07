@@ -12,7 +12,10 @@ from __future__ import annotations
 
 import os
 
-os.environ["HF_HOME"] = "/Users/abdel/.cache/huggingface"
+from pathlib import Path
+
+if "HF_HOME" not in os.environ:
+    os.environ["HF_HOME"] = str(Path.home() / ".cache" / "huggingface")
 os.environ["HF_HUB_OFFLINE"] = "1"
 
 
@@ -68,7 +71,8 @@ from app_logger import LOGS_DIR, logger, setup_logging
 setup_logging()
 
 
-SETTINGS_FILE = "/Users/Work/Projects/Whisper-local/settings.json"
+PROJECT_ROOT = Path(__file__).resolve().parent
+SETTINGS_FILE = str(PROJECT_ROOT / "settings.json")
 
 
 def load_settings() -> dict:
@@ -616,7 +620,7 @@ class WhisperStackTray(QObject):
             self._voice_filter_action.setText("🛡️ Voice Filter: Disabled")
             self._voice_filter_action.setChecked(False)
         elif has_profile:
-            self._voice_filter_action.setText("🛡️ Voice Filter: Active (Abdel)")
+            self._voice_filter_action.setText("🛡️ Voice Filter: Active (Enrolled)")
             self._voice_filter_action.setChecked(True)
         else:
             self._voice_filter_action.setText("🛡️ Voice Filter: No Profile Enrolled")
@@ -639,8 +643,9 @@ class WhisperStackTray(QObject):
         )
 
     def _launch_voice_calibration(self):
-        enroll_script = "/Users/Work/Projects/Whisper-local/enroll_voice.py"
-        python_bin = "/Users/Work/Projects/Whisper-local/venv/bin/python"
+        project_root = Path(__file__).resolve().parent
+        enroll_script = str(project_root / "enroll_voice.py")
+        python_bin = sys.executable
         apple_script = f'''
         tell application "Terminal"
             activate

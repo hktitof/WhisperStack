@@ -55,8 +55,10 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtWidgets import QApplication, QWidget
 
+from pathlib import Path
+
 # Path to the persistent settings JSON file.
-SETTINGS_FILE = "/Users/Work/Projects/Whisper-local/settings.json"
+SETTINGS_FILE = str(Path(__file__).resolve().parent / "settings.json")
 
 
 def load_settings() -> dict:
