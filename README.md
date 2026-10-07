@@ -1,5 +1,7 @@
 # 🎙️ WhisperStack — Local Real-Time Dictation & Clipboard Stacking for macOS
 
+> **Version**: `v1.0` (Official Production Release)
+
 WhisperStack is a high-performance native macOS menu-bar dictation application built specifically for Apple Silicon (M1/M2/M3/M4). It runs OpenAI's Whisper models 100% offline on the unified GPU using Apple's MLX framework, while simultaneously stacking your clipboard history in the background with intelligent delta deduplication.
 
 Press a global hotkey anywhere, speak naturally, copy any code or text references mid-speech, press the hotkey again, and your merged speech-and-clipboard payload is typed directly into your focused window in under **1 second**.
