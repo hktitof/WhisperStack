@@ -108,7 +108,7 @@ def save_settings(settings: dict):
         print(f"⚠️ Could not save settings: {exc}")
 
 
-def play_system_sound(sound_name: str):
+def play_system_sound(sound_name: str, volume: float = 1.2):
     sound_path = f"/System/Library/Sounds/{sound_name}.aiff"
 
     if not os.path.exists(sound_path):
@@ -116,7 +116,7 @@ def play_system_sound(sound_name: str):
 
     try:
         subprocess.Popen(
-            ["afplay", sound_path],
+            ["afplay", "-v", str(volume), sound_path],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -829,13 +829,13 @@ class WhisperStackTray(QObject):
             self._start_recording()
 
     def _start_recording(self):
+        play_system_sound("Tink", volume=1.5)
         try:
             self._recorder.start()
         except Exception as exc:
             self.recording_failed.emit(str(exc))
             return
 
-        play_system_sound("Ping")
         self._overlay.show_recording()
         self._tray.setIcon(make_tray_icon(True))
         self._tray.setToolTip("WhisperStack — recording")
@@ -843,7 +843,7 @@ class WhisperStackTray(QObject):
 
     def _stop_recording(self):
         self._overlay.show_processing()
-        play_system_sound("Glass")
+        play_system_sound("Glass", volume=1.5)
 
         self._tray.setIcon(make_tray_icon(False))
         self._tray.setToolTip("WhisperStack — processing")
