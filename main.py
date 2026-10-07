@@ -829,7 +829,7 @@ class WhisperStackTray(QObject):
             self._start_recording()
 
     def _start_recording(self):
-        play_system_sound("Tink", volume=1.5)
+        play_system_sound("Ping")
         try:
             self._recorder.start()
         except Exception as exc:
@@ -843,7 +843,7 @@ class WhisperStackTray(QObject):
 
     def _stop_recording(self):
         self._overlay.show_processing()
-        play_system_sound("Glass", volume=1.5)
+        play_system_sound("Glass")
 
         self._tray.setIcon(make_tray_icon(False))
         self._tray.setToolTip("WhisperStack — processing")
